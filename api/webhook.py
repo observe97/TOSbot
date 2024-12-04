@@ -1,4 +1,4 @@
-from flask import Flask, jsonify
+from flask import Flask, request, jsonify
 import requests
 import os
 
@@ -28,6 +28,20 @@ def send_discord_message(title, description):
     else:
         print(f"메시지 전송 실패: {response.status_code}, {response.text}")
         return {"error": f"전송 실패: {response.status_code}, {response.text}"}, 400
+
+# Webhook 엔드포인트
+@app.route("/api/webhook", methods=["GET", "POST"])
+def webhook():
+    if request.method == "GET":
+        # GET 요청 처리: 기본 메시지 반환
+        return jsonify({"message": "Webhook 엔드포인트입니다. POST 요청을 통해 메시지를 전송할 수 있습니다."}), 200
+
+    # POST 요청 처리: Discord Webhook 메시지 전송
+    data_from_request = request.json
+    title = data_from_request.get("title", "기본 제목")
+    description = data_from_request.get("description", "기본 설명")
+    result, status_code = send_discord_message(title, description)
+    return jsonify(result), status_code
 
 # 즉시 테스트 API
 @app.route("/api/test-push", methods=["GET"])
