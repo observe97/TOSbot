@@ -7,7 +7,10 @@ app = Flask(__name__)
 @app.route("/api/webhook", methods=["POST"])
 def send_webhook():
     # 환경 변수에서 Webhook URL 가져오기
-    webhook_url = os.getenv("https://discord.com/api/webhooks/1313338442155032627/Trmc3fYWf1gei4pdUuJPxb25am2UVXGe0lTX7SEuoHtr7dtMn3EankeCjKbA9KK6CKg9")
+    webhook_url = os.getenv("WEBHOOK_URL")  # 환경 변수 이름을 지정
+
+    if not webhook_url:
+        return jsonify({"error": "환경 변수 'WEBHOOK_URL'이 설정되지 않았습니다."}), 500
 
     # 요청 데이터 처리 (옵션)
     data_from_request = request.json
