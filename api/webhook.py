@@ -30,6 +30,3 @@ def send_webhook():
         return jsonify({"message": "메시지가 성공적으로 전송되었습니다!"}), 200
     else:
         return jsonify({"error": f"전송 실패: {response.status_code}, {response.text}"}), 400
-
-if __name__ == "__main__":
-    app.run()
