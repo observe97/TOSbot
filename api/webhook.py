@@ -1,35 +1,44 @@
-from flask import Flask, request, jsonify
+from flask import Flask, jsonify
 import requests
 import os
 
 app = Flask(__name__)
 
-@app.route("/api/webhook", methods=["POST"])
-def send_webhook():
-    # 환경 변수에서 Webhook URL 가져오기
-    webhook_url = os.getenv("WEBHOOK_URL")  # 환경 변수 이름을 지정
-
+# Discord 메시지 전송 함수
+def send_discord_message(title, description):
+    webhook_url = os.getenv("WEBHOOK_URL")
     if not webhook_url:
-        return jsonify({"error": "환경 변수 'WEBHOOK_URL'이 설정되지 않았습니다."}), 500
+        print("환경 변수 'WEBHOOK_URL'이 설정되지 않았습니다.")
+        return {"error": "환경 변수 'WEBHOOK_URL'이 설정되지 않았습니다."}, 500
 
-    # 요청 데이터 처리 (옵션)
-    data_from_request = request.json
-
-    # Discord로 보낼 메시지 데이터
     data = {
         "embeds": [
             {
-                "title": "🔔 TOSbot 알림",
-                "description": data_from_request.get("message", "테스트 메시지입니다! 🎉"),
+                "title": title,
+                "description": description,
                 "color": 0x00FF00  # 초록색
             }
         ]
     }
 
-    # Discord Webhook 요청
     response = requests.post(webhook_url, json=data, verify=False)
-
     if response.status_code == 204:
-        return jsonify({"message": "메시지가 성공적으로 전송되었습니다!"}), 200
+        print(f"메시지 전송 성공: {title}")
+        return {"message": "메시지가 성공적으로 전송되었습니다!"}, 200
     else:
-        return jsonify({"error": f"전송 실패: {response.status_code}, {response.text}"}), 400
+        print(f"메시지 전송 실패: {response.status_code}, {response.text}")
+        return {"error": f"전송 실패: {response.status_code}, {response.text}"}, 400
+
+# 즉시 테스트 API
+@app.route("/api/test-push", methods=["GET"])
+def test_push():
+    result, status_code = send_discord_message(
+        "🔔 테스트 알림",
+        "이것은 테스트 메시지입니다! 설정이 제대로 되었는지 확인하세요. 😊"
+    )
+    return jsonify(result), status_code
+
+# 기본 루트 경로
+@app.route("/")
+def home():
+    return jsonify({"message": "TOSbot Webhook API가 실행 중입니다!"})
